@@ -1,47 +1,98 @@
 <App Theme="Basic" ClearColor="#eeeeeeff">
 	<DockPanel>
-		<JavaScript File="parse-1.6.7.js" ux:Global="Parse" />
+		<JavaScript File="./syncano-js/dist/syncano.js" ux:Global="Syncano" />
 		<JavaScript File="api-keys.js" ux:Global="ApiKeys" />
 		<JavaScript>
+			debug_log("---- Starting ----");
 			var Observable = require("FuseJS/Observable");
-			var Parse = require("Parse").Parse;
+			var Syncano = require("Syncano");
 			var ApiKeys = require("ApiKeys");
 
-			Parse.initialize(ApiKeys.appId, ApiKeys.jsKey);
+			var account = new Syncano({accountKey: ApiKeys.accountKey});
 
-			var Tag = Parse.Object.extend("Tag");
+			// var instance = new Syncano({accountKey : ApiKeys.accountKey, instance: ApiKeys.instanceName });
+			var classname = "tag";
+			forceClass(classname);
+
+			// var Tag = Parse.Object.extend("Tag");
 
 			var tags = Observable();
 
 			var updateInterval = 500;
 
-			function updateTags() {
-				new Parse.Query("Tag").find().then(function(serverTags) {
-					//debug_log("Query successful: " + JSON.stringify(serverTags));
-					// Let's only add the ones that are newer than what we have
-					for (var i = tags.length; i < serverTags.length; i++) {
-						tags.add(serverTags[i].get("text"));
+			function forceClass(classname) {
+				account.instance(ApiKeys.instanceName).class().list(function (a,response) {
+					var obj = response.objects;
+					var found = 0;
+					for (var i = 0; i < obj.length; i++) {
+						debug_log(obj[i].name);
+						if (obj[i].name === classname) {
+							found = 1;
+							break;
+						}
 					}
-				}, function(error) {
-					debug_log("Could not update tags: " + error);
-				});
+					debug_log("Found " + found);
+					if (found) {
+						classExists(classname);
+					}
+					else {
+						debug_log("Creating class");
 
-				setTimeout(updateTags, updateInterval);
+						var options = {
+						  "name":classname,
+						  "description":"List of tags",
+						  "schema":[
+						    {"type":"string","name":"text"}
+						  ]
+						};
+
+						account.instance(ApiKeys.instanceName).class().add(options, function (a, response) {
+							debug_log("Creating class");
+							debug_log("a: " + JSON.stringify(a));
+							debug_log("a: " + JSON.stringify(response));
+							classExists(classname);
+						});
+
+					}
+					
+				});
 			}
 
-			updateTags();
+			function classExists (classname) {
+				updateTags();
+			}
+
+			function updateTags() {
+				debug_log("Updating tags");
+
+				var filter = {
+				  "orderBy": {"created_at" : "asc"}
+				};
+
+				account.instance(ApiKeys.instanceName).class(classname).dataobject().list(filter, function (a,response) {
+					var serverTags = response.objects;
+					for (var i = tags.length; i < serverTags.length; i++) {
+						debug_log("Adding:  " + serverTags[i].tagtext);
+						tags.add(serverTags[i].tagtext);
+					}
+
+					setTimeout(updateTags, updateInterval);
+				});
+
+			}
 
 			var currentText = Observable("");
-
 			function submit() {
-				new Tag().save({
-					text: currentText.value
-				}).then(function(tag) {
-					debug_log("Tag saved successfully!");
-				}, function(error) {
-					debug_log("Could not save tag: " + error);
-				})
-				//tags.add(currentText.value);
+				var object = {"tagtext": currentText.value};
+				debug_log("object: " + JSON.stringify(object));
+
+				account.instance(ApiKeys.instanceName).class(classname).dataobject().add(object, function (a,b,c) {
+					debug_log("TAG ADDED");
+					debug_log("a: " + JSON.stringify(a));
+					debug_log("b: " + JSON.stringify(b));
+					debug_log("c: " + JSON.stringify(c));
+
+				});
 				currentText.value = "";
 			}
 
