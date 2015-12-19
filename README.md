@@ -1,24 +1,22 @@
-# Using Parse with Fuse Example
-Example project to accompany the "[Using Parse with Fuse](https://youtu.be/Th0V2p7EmXw)" Fuse tutorial video. This is a super simple app using [Parse](https://www.parse.com) as a backend service, where anyone can simply post text, and anyone else can see that text. All relevant code is in the `MainView.ux` file.
+# Using Syncano with Fuse Example
+Example project which is a rewrite of "[Using Syncano with Fuse Example](https://github.com/yupferris/fuse-example-using-parse)". This is a super simple app using [Syncano](https://www.syncano.io) as a backend service, where anyone can simply post text, and anyone else can see that text. All relevant code is in the `MainView.ux` file.
 
 ## Setup
-_NOTE: this is covered in the tutorial video._
-
-You'll need to use your own Parse app backend with this example. Insert your app's Application ID and Javascript Key into the `api-keys.js` file:
+You'll need to use your own Syncano app backend with this example. Insert your app's Application ID and instance name into the `api-keys.js` file:
 ```js
 module.exports = {
-	appId: "YOUR APP ID HERE",
-	jsKey: "YOUR JS KEY HERE"
+	accountKey: "APIKEY/ACCOUNTKEY",
+	instanceName: "YOUR INSTANCE NAME HERE"
 };
 ```
+
+* Create account at [Syncano](https://syncano.io/)
+* Clone [syncano-js](https://github.com/Syncano/syncano-js) lib into root catalog:
 
 Once that's done, you're ready to roll!
 
 ## Fuse version
-This example was produced with Fuse (beta) v0.8.4.
-
-## Branches
-The "finished product" is on the `master` branch, and the template I started with in the video is on the `starting-template` branch.
+This example was produced with Fuse (beta) v0.9.4.
 
 ## License
-This code is licensed under the BSD2 license (see LICENSE). The Parse JavaScript SDK v1.6.7 is licenced under its own BSD-style license (see parse-1.6.7.js).
+This code is licensed under the BSD2 license (see LICENSE). 

@@ -47,9 +47,6 @@
 						};
 
 						account.instance(ApiKeys.instanceName).class().add(options, function (a, response) {
-							debug_log("Creating class");
-							debug_log("a: " + JSON.stringify(a));
-							debug_log("a: " + JSON.stringify(response));
 							classExists(classname);
 						});
 
@@ -63,8 +60,6 @@
 			}
 
 			function updateTags() {
-				debug_log("Updating tags");
-
 				var filter = {
 				  "orderBy": {"created_at" : "asc"}
 				};
@@ -86,12 +81,7 @@
 				var object = {"tagtext": currentText.value};
 				debug_log("object: " + JSON.stringify(object));
 
-				account.instance(ApiKeys.instanceName).class(classname).dataobject().add(object, function (a,b,c) {
-					debug_log("TAG ADDED");
-					debug_log("a: " + JSON.stringify(a));
-					debug_log("b: " + JSON.stringify(b));
-					debug_log("c: " + JSON.stringify(c));
-
+				account.instance(ApiKeys.instanceName).class(classname).dataobject().add(object, function (a,b) {
 				});
 				currentText.value = "";
 			}
