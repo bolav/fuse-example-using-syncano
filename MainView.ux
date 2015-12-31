@@ -42,7 +42,7 @@
 						  "name":classname,
 						  "description":"List of tags",
 						  "schema":[
-						    {"type":"string","name":"text"}
+						    {"type":"string","name":"tagtext"}
 						  ]
 						};
 
