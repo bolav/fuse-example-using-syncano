@@ -11,12 +11,12 @@ module.exports = {
 ```
 
 * Create account at [Syncano](https://syncano.io/)
-* Clone [syncano-js](https://github.com/Syncano/syncano-js) lib into root catalog:
+* bower install syncano
 
 Once that's done, you're ready to roll!
 
 ## Fuse version
-This example was produced with Fuse (beta) v0.9.4.
+This example was produced with Fuse (beta) v0.22.0.
 
 ## License
 This code is licensed under the BSD2 license (see LICENSE). 

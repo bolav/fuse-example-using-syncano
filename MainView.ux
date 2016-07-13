@@ -1,17 +1,21 @@
-<App Theme="Basic" ClearColor="#eeeeeeff">
+<App ClearColor="#eeeeeeff">
 	<DockPanel>
-		<JavaScript File="./syncano-js/dist/syncano.js" ux:Global="Syncano" />
-		<JavaScript File="api-keys.js" ux:Global="ApiKeys" />
 		<JavaScript>
 			debug_log("---- Starting ----");
 			var Observable = require("FuseJS/Observable");
-			var Syncano = require("Syncano");
-			var ApiKeys = require("ApiKeys");
+			var Syncano = require("syncano-js-1.0.22/dist/syncano.fuse.js");
+			var ApiKeys = require("api-keys.js");
 
-			var account = new Syncano({accountKey: ApiKeys.accountKey});
+			var classname = "tag";
+			var connection = Syncano({
+				accountKey: ApiKeys.accountKey,
+				 defaults: { 
+				             instanceName: ApiKeys.instanceName, 
+				             className: classname
+				           }
+			});
 
 			// var instance = new Syncano({accountKey : ApiKeys.accountKey, instance: ApiKeys.instanceName });
-			var classname = "tag";
 			forceClass(classname);
 
 			// var Tag = Parse.Object.extend("Tag");
@@ -21,17 +25,17 @@
 			var updateInterval = 500;
 
 			function forceClass(classname) {
-				account.instance(ApiKeys.instanceName).class().list(function (a,response) {
-					var obj = response.objects;
-					var found = 0;
-					for (var i = 0; i < obj.length; i++) {
-						debug_log(obj[i].name);
-						if (obj[i].name === classname) {
-							found = 1;
-							break;
-						}
-					}
-					debug_log("Found " + found);
+				console.log("Forcing class");
+
+				var found = 0;
+				connection.Class.please().get({ name: classname }).then(function (response, raw) {
+					console.log("a:" + JSON.stringify(response));
+					console.log("b:" + JSON.stringify(raw));
+					found = 1;
+				}).catch(function(reason) {
+					console.log("forceClass get error: " + reason);
+				}).then(function () {
+					console.log("Finally!!: " + found);
 					if (found) {
 						classExists(classname);
 					}
@@ -40,19 +44,22 @@
 
 						var options = {
 						  "name":classname,
+						  "instanceName": ApiKeys.instanceName,
 						  "description":"List of tags",
 						  "schema":[
 						    {"type":"string","name":"tagtext"}
 						  ]
 						};
 
-						account.instance(ApiKeys.instanceName).class().add(options, function (a, response) {
-							classExists(classname);
+						connection.Class.please().create(options).then(function (response, raw) {
+							console.log("Added class " + JSON.stringify(response));
+							classExists(classname);							
+						}).catch(function (reason) {
+							console.log("forceClass create error: " + reason);
 						});
 
 					}
-					
-				});
+				})
 			}
 
 			function classExists (classname) {
@@ -61,18 +68,26 @@
 
 			function updateTags() {
 				var filter = {
-				  "orderBy": {"created_at" : "asc"}
+				  "order_by": "-created_at"
 				};
+				console.log("updateTags");
 
-				account.instance(ApiKeys.instanceName).class(classname).dataobject().list(filter, function (a,response) {
-					var serverTags = response.objects;
+				connection.DataObject
+				  .please()
+				  .list(filter)
+				  .then(function(res) { 
+				      console.log(JSON.stringify(res));
+				      var serverTags = res;
 					for (var i = tags.length; i < serverTags.length; i++) {
 						debug_log("Adding:  " + serverTags[i].tagtext);
 						tags.add(serverTags[i].tagtext);
 					}
 
 					setTimeout(updateTags, updateInterval);
-				});
+				  })
+				  .catch(function (reason) {
+				  	console.log("updateTags error: " + reason);
+				  });
 
 			}
 
@@ -81,8 +96,12 @@
 				var object = {"tagtext": currentText.value};
 				debug_log("object: " + JSON.stringify(object));
 
-				account.instance(ApiKeys.instanceName).class(classname).dataobject().add(object, function (a,b) {
+				connection.DataObject.please().create(object).then(function () {
+					console.log("saved " + currentText.value);
+				}).catch(function (reason) {
+					console.log("submit error: " + reason);
 				});
+
 				currentText.value = "";
 			}
 
@@ -99,8 +118,8 @@
 		<Text Dock="Top" Alignment="Center" FontSize="80" Margin="0,50,0,50" TextColor="#1e88e5">tag</Text>
 
 		<StackPanel Dock="Bottom" Margin="0,50,0,0">
-			<Button Text="tag" Clicked="{submit}" />
-			<TextInput Value="{currentText}" TextAlignment="Center" />
+			<Basic.TextInput Value="{currentText}" TextAlignment="Center" />
+			<Basic.Button Text="tag" Clicked="{submit}" />
 		</StackPanel>
 
 		<ScrollView ClipToBounds="true">
